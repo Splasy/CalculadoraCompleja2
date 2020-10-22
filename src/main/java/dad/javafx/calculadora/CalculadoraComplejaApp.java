@@ -1,6 +1,9 @@
 package dad.javafx.calculadora;
 
 import javafx.application.Application;
+import javafx.beans.binding.Bindings;
+import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.SimpleDoubleProperty;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -11,8 +14,9 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import javafx.util.converter.NumberStringConverter;
 
-public class App extends Application {
+public class CalculadoraComplejaApp extends Application {
 	private ComboBox<String> operadorCombo;
 	private TextField nReal1;
 	private TextField nImaginario1;
@@ -23,84 +27,130 @@ public class App extends Application {
 	private Label sumaLabel;
 	private Label iLabel;
 	private Separator separador;
+	Complejo complejo;
+	Complejo complejo2;
+	Complejo complejoRes;
+	private DoubleProperty n = new SimpleDoubleProperty(0);
+	private DoubleProperty n2 = new SimpleDoubleProperty(0);
+	private DoubleProperty nRes = new SimpleDoubleProperty(0);
+
 	@Override
 	public void start(Stage primaryStage) throws Exception {
 		operadorCombo = new ComboBox<String>();
 		operadorCombo.getItems().addAll("+", "-", "*", "/");
-		operadorCombo.getSelectionModel().select(0);
+
+
+		complejo = new Complejo();
+		complejo2 = new Complejo();
+		complejoRes = new Complejo();
 		
 		nReal1 = new TextField();
 		nReal1.setPrefWidth(50);
 		nReal1.setAlignment(Pos.CENTER);
-		
-		
+		nReal1.textProperty().set("0");
+
 		nReal2 = new TextField();
 		nReal2.setPrefWidth(50);
 		nReal2.setAlignment(Pos.CENTER);
-		
+		nReal2.textProperty().set("0");
+
 		nRealRes = new TextField();
 		nRealRes.setPrefWidth(50);
 		nRealRes.setAlignment(Pos.CENTER);
-		nRealRes.disabledProperty();
-		
+		nRealRes.setDisable(true);
+
 		nImaginario1 = new TextField();
 		nImaginario1.setPrefWidth(50);
 		nImaginario1.setAlignment(Pos.CENTER);
-		
+		nImaginario1.textProperty().set("0");
+
 		nImaginario2 = new TextField();
 		nImaginario2.setPrefWidth(50);
 		nImaginario2.setAlignment(Pos.CENTER);
-		
+		nImaginario2.textProperty().set("0");
+
 		nImaginarioRes = new TextField();
 		nImaginarioRes.setPrefWidth(50);
 		nImaginarioRes.setAlignment(Pos.CENTER);
-		nImaginarioRes.disabledProperty();
-		
+		nImaginarioRes.setDisable(true);
+
 		sumaLabel = new Label("+");
-		
+
 		separador = new Separator();
 		separador.setOrientation(Orientation.HORIZONTAL);
-		
-		
+
 		iLabel = new Label("i");
-		
+
 		VBox cajaOperador = new VBox();
 		cajaOperador.setAlignment(Pos.CENTER);
 		cajaOperador.setSpacing(5);
 		cajaOperador.getChildren().addAll(operadorCombo);
-		
+
 		HBox cajaDatos1 = new HBox();
 		cajaDatos1.setAlignment(Pos.CENTER);
 		cajaDatos1.setSpacing(5);
 		cajaDatos1.getChildren().addAll(nReal1, sumaLabel, nImaginario1, iLabel);
-		
+
 		HBox cajaDatos2 = new HBox();
 		cajaDatos2.setAlignment(Pos.CENTER);
 		cajaDatos2.setSpacing(5);
 		cajaDatos2.getChildren().addAll(nReal2, new Label("+"), nImaginario2, new Label("i"));
-		
+
 		HBox cajaResultado = new HBox();
 		cajaResultado.setAlignment(Pos.CENTER);
 		cajaResultado.setSpacing(5);
 		cajaResultado.getChildren().addAll(nRealRes, new Label("+"), nImaginarioRes, new Label("i"));
-		
-		
+
 		VBox cajaPrincipal = new VBox();
 		cajaPrincipal.setAlignment(Pos.CENTER);
 		cajaPrincipal.setSpacing(5);
 		cajaPrincipal.getChildren().addAll(cajaDatos1, cajaDatos2, separador, cajaResultado);
-		
+
 		HBox root = new HBox();
 		root.setAlignment(Pos.CENTER);
 		root.setSpacing(5);
 		root.getChildren().addAll(cajaOperador, cajaPrincipal);
-		
+
 		Scene scene = new Scene(root, 480, 320);
-		
+
 		primaryStage.setTitle("CalculadoraCompleja");
 		primaryStage.setScene(scene);
 		primaryStage.show();
 		
+		Bindings.bindBidirectional(nReal1.textProperty(), complejo.realProperty(), new NumberStringConverter());
+		Bindings.bindBidirectional(nImaginario1.textProperty(), complejo.imaginarioProperty(), new NumberStringConverter());
+		
+		
+		Bindings.bindBidirectional(nReal2.textProperty(), complejo2.realProperty(), new NumberStringConverter());
+		Bindings.bindBidirectional(nImaginario2.textProperty(), complejo2.imaginarioProperty(), new NumberStringConverter());
+		
+
+
+		operadorCombo.getSelectionModel().selectedItemProperty().addListener((o, ov, nv) -> {
+			if (operadorCombo.getSelectionModel().getSelectedItem().equals("+")) {
+				complejoRes = complejo.add(complejo2);
+				nRealRes.textProperty().bind(complejoRes.realProperty().asString("%.2f"));
+				nImaginarioRes.textProperty().bind(complejoRes.imaginarioProperty().asString("%.2f"));
+			}
+
+			if (operadorCombo.getSelectionModel().getSelectedItem().equals("-")) {
+				complejoRes = complejo.restar(complejo2);
+				nRealRes.textProperty().bind(complejoRes.realProperty().asString("%.2f"));
+				nImaginarioRes.textProperty().bind(complejoRes.imaginarioProperty().asString("%.2f"));
+			}
+
+			if (operadorCombo.getSelectionModel().getSelectedItem().equals("*")) {
+				complejoRes = complejo.multiply(complejo2);
+				nRealRes.textProperty().bind(complejoRes.realProperty().asString("%.2f"));
+				nImaginarioRes.textProperty().bind(complejoRes.imaginarioProperty().asString("%.2f"));
+			}
+			if (operadorCombo.getSelectionModel().getSelectedItem().equals("/")) {
+				complejoRes = complejo.divide(complejo2);
+				nRealRes.textProperty().bind(complejoRes.realProperty().asString("%.2f"));
+				nImaginarioRes.textProperty().bind(complejoRes.imaginarioProperty().asString("%.2f"));
+			}
+		});
+
 	}
 
 	public static void main(String[] args) {
